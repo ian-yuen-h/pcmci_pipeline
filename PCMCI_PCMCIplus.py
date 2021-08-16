@@ -79,14 +79,14 @@ def process_data(dataset_dict):
             effectdb = dataset_dict[each][import_type]
             n1 = causal.shape[0]
             n2 = effectdb.shape[0]
-            TRAIN_TS, TEST_TS = representation.get_rep_train_test(effectdb, causal)
+            # TRAIN_TS, TEST_TS = representation.get_rep_train_test(effectdb, causal)
             # for reps in ["GRAIL", "non-GRAIL"]:     #with and without GRAIL
             #     if reps == "GRAIL":
             #         effect =  TEST_TS
             #     else:
             #         effect = effectdb
             #     # rep = reps
-
+            effect = effectdb
             reps = "non-Grail"
             var_names = np.arange(len(effect))
             attr_hold.var_names = var_names
