@@ -91,16 +91,20 @@ def process_data(dataset_dict):
             var_names = np.arange(len(effect))
             attr_hold.var_names = var_names
 
-            df = pp.DataFrame(effect.transpose(), datatime = np.arange(len(effect[0])),var_names=var_names)
+            df1 = pp.DataFrame(effect.transpose(), datatime = np.arange(len(effect[0])),var_names=var_names)
+            df2 = copy.deepcopy(df1)
             parcorr = ParCorr(significance='analytic')
-            pcmci = PCMCI(
-                dataframe=df, 
+            pcmci1 = PCMCI(
+                dataframe=df1, 
                 cond_ind_test=parcorr,
                 verbosity=0)
-            pcmci.verbosity = 0
-            # tau_max = 3
-            pcmci1 = copy.deepcopy(pcmci)
-            pcmci2 = copy.deepcopy(pcmci)
+            pcmci1.verbosity = 0
+
+            pcmci2 = PCMCI(
+                dataframe=df2, 
+                cond_ind_test=parcorr,
+                verbosity=0)
+            pcmci2.verbosity = 0
             attr_hold.dataset_name = each
             attr_hold.import_type = import_type
             attr_hold.representation = reps
