@@ -351,7 +351,7 @@ def saving_attributes(attr):
 
 def main():
     dataset_dict = import_data()
-    process_data_once(dataset_dict)
+    process_data(dataset_dict)
     # process_data(dataset_dict)
     pass
 
