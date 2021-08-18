@@ -88,6 +88,8 @@ class ParCorr(CondIndTest):
         dim, T = array.shape
         dim_z = dim - 2
 
+        # with open("/Users/ianyuen/Documents/GitHUb/RA_time_series/pcmci_pipeline/test.txt", "a") as f:
+        #     f.write(array.shape)
         # Standardize
         if standardize:
             array -= array.mean(axis=1).reshape(dim, 1)

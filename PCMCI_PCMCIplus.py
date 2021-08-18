@@ -11,6 +11,7 @@ from tigramite import data_processing as pp
 from tigramite import plotting as tp
 from tigramite.pcmci import PCMCI
 from tigramite.independence_tests import ParCorr, GPDC, CMIknn, CMIsymb
+from Causal_inference import check_with_original
 import importlib
 import json
 from time import time
@@ -66,8 +67,58 @@ def import_data():
             dataset_dict[each][import_type] = np.load(str(DATA_PATH+each+"_"+import_type+".npy"))
     return dataset_dict
 
+def process_data_once(dataset_dict):
+    importlib.reload(tigramite)
+    attr_hold = DataAttri()
+    causal = dataset_dict["FaceFour"]["causaldb"]
+    # representation = Representation.GRAIL(kernel="SINK", d = 100, gamma = BEST_GAMMA)
+    trueMat = dataset_dict["FaceFour"]["truemat"]
+    attr_hold.trueMat = trueMat
+    effectdb = dataset_dict["FaceFour"]["randomsd0.1_effectdb"]
+    effect = effectdb
+    var_names = np.arange(len(effectdb))
+    df1 = pp.DataFrame(effect.transpose(), datatime = np.arange(len(effect[0])),var_names=var_names)
+    df2 = copy.deepcopy(df1)
+    parcorr = ParCorr(significance='analytic')
+    pcmci1 = PCMCI(
+        dataframe=df1, 
+        cond_ind_test=parcorr,
+        verbosity=0)
+    pcmci1.verbosity = 0
+
+    pcmci2 = PCMCI(
+        dataframe=df2, 
+        cond_ind_test=parcorr,
+        verbosity=0)
+    pcmci2.verbosity = 0
+
+    attr_hold.dataset_name = "FaceFour"
+    attr_hold.import_type = "randomsd0.1_effectdb"
+    attr_hold.representation = "non-Grail"
+    attr1 = copy.deepcopy(attr_hold)
+    attr2 = copy.deepcopy(attr_hold)
+    # attr1.pcmci = pcmci1
+    # attr2.pcmci = pcmci2
+    print("first stage")
+    # run_PCMCI(attr1)
+    # run_PCMCI_plus(attr2)
+    t = time()
+    # results = pcmci1.run_pcmci(tau_max=TAU_MAX, pc_alpha=None)
+    # q_matrix = attr1.pcmci.get_corrected_pvalues(p_matrix=results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
+    results = pcmci2.run_pcmciplus(tau_min=0, tau_max=TAU_MAX, pc_alpha=None)
+    print("second stage done")
+    q_matrix = pcmci2.get_corrected_pvalues(p_matrix=results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
+    return_time = time() - t
+    attr1.return_time = return_time
+    attr1.val_matrix = results["val_matrix"]
+    attr1.q_matrix = q_matrix
+    attr1.p_matrix = results['p_matrix']
+    attr1.model = "PCMCI_plus"
+    thread_control(attr1)
+
 def process_data(dataset_dict):
     importlib.reload(tigramite)
+    counter = 0
     for each in DATASET_NAMES:
         attr_hold = DataAttri()
         causal = dataset_dict[each]["causaldb"]
@@ -76,6 +127,8 @@ def process_data(dataset_dict):
         attr_hold.trueMat = trueMat
 
         for import_type in TO_IMPORT:
+            if counter == 1:
+                break
             effectdb = dataset_dict[each][import_type]
             n1 = causal.shape[0]
             n2 = effectdb.shape[0]
@@ -91,6 +144,12 @@ def process_data(dataset_dict):
             var_names = np.arange(len(effect))
             attr_hold.var_names = var_names
 
+            attr_hold.dataset_name = each
+            attr_hold.import_type = import_type
+            attr_hold.representation = reps
+            attr1 = copy.deepcopy(attr_hold)
+            attr2 = copy.deepcopy(attr_hold)
+
             df1 = pp.DataFrame(effect.transpose(), datatime = np.arange(len(effect[0])),var_names=var_names)
             df2 = copy.deepcopy(df1)
             parcorr = ParCorr(significance='analytic')
@@ -99,28 +158,63 @@ def process_data(dataset_dict):
                 cond_ind_test=parcorr,
                 verbosity=0)
             pcmci1.verbosity = 0
+            t = time()
+            results = pcmci1.run_pcmci(tau_max=TAU_MAX, pc_alpha=None)
+            q_matrix = pcmci1.get_corrected_pvalues(p_matrix=results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
+            return_time = time() - t
+            attr1.return_time = return_time
+            attr1.val_matrix = results["val_matrix"]
+            attr1.q_matrix = q_matrix
+            attr1.p_matrix = results['p_matrix']
+            attr1.model = "PCMCI"
+            for alpha_level in PVALS:
+                link_matrix = pcmci1.return_significant_links(pq_matrix=attr1.q_matrix,
+                            val_matrix=attr1.val_matrix, alpha_level=alpha_level)['link_matrix']
+                for lagged in LAGS:
+                    attrz = copy.deepcopy(attr1)
+                    attrz.alpha_level = alpha_level
+                    attrz.lagged = lagged
+                    attrz.link_matrix = link_matrix
+                    z = threading.Thread(target=thread_workers, args=(attrz, ))
+                    z.start()
 
             pcmci2 = PCMCI(
                 dataframe=df2, 
                 cond_ind_test=parcorr,
                 verbosity=0)
             pcmci2.verbosity = 0
-            attr_hold.dataset_name = each
-            attr_hold.import_type = import_type
-            attr_hold.representation = reps
-            attr1 = copy.deepcopy(attr_hold)
-            attr2 = copy.deepcopy(attr_hold)
-            attr1.pcmci = pcmci1
-            attr2.pcmci = pcmci2
-            x = threading.Thread(target=run_PCMCI, args=(attr1, ))
-            x.start()
-            y = threading.Thread(target=run_PCMCI_plus, args=(attr2, ))
-            y.start()
+            t = time()
+            results = pcmci2.run_pcmciplus(tau_min=0, tau_max=TAU_MAX, pc_alpha=None)
+            q_matrix = pcmci2.get_corrected_pvalues(p_matrix=results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
+            return_time = time() - t
+            attr2.return_time = return_time
+            attr2.val_matrix = results["val_matrix"]
+            attr2.q_matrix = q_matrix
+            attr2.p_matrix = results['p_matrix']
+            attr2.model = "PCMCI_plus"
+            for alpha_level in PVALS:
+                link_matrix = pcmci1.return_significant_links(pq_matrix=attr2.q_matrix,
+                            val_matrix=attr1.val_matrix, alpha_level=alpha_level)['link_matrix']
+                for lagged in LAGS:
+                    attry = copy.deepcopy(attr2)
+                    attry.alpha_level = alpha_level
+                    attry.lagged = lagged
+                    attry.link_matrix = link_matrix
+                    y = threading.Thread(target=thread_workers, args=(attry, ))
+                    y.start()
+            
+            # x = threading.Thread(target=run_PCMCI, args=(attr1, ))
+            # x.start()
+            # y = threading.Thread(target=run_PCMCI_plus, args=(attr2, ))
+            # y.start()
+            # counter += 1
 
 def run_PCMCI(attr):
+    print("second stage")
     t = time()
     results = attr.pcmci.run_pcmci(tau_max=TAU_MAX, pc_alpha=None)
-    q_matrix = attr.pcmci.get_corrected_pvalues(p_matrix=attr.results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
+
+    q_matrix = attr.pcmci.get_corrected_pvalues(p_matrix=results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
     return_time = time() - t
     attr.return_time = return_time
     attr.val_matrix = results["val_matrix"]
@@ -131,9 +225,19 @@ def run_PCMCI(attr):
     pass
 
 def run_PCMCI_plus(attr):
+    print("plus second stage")
     t = time()
+    print(attr.pcmci.dataframe.values.shape)
     results = attr.pcmci.run_pcmciplus(tau_min=0, tau_max=TAU_MAX, pc_alpha=None)
-    q_matrix = attr.pcmci.get_corrected_pvalues(p_matrix=attr.results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
+    # try:
+    #     results = attr.pcmci.run_pcmciplus(tau_min=0, tau_max=TAU_MAX, pc_alpha=None)
+    # except:
+    #     print(attr.pcmci.dataframe.values.shape)
+    #     with open(f'{CWD}/model_results/2.npy', "wb") as f:
+    #         np.save(f, attr.pcmci.dataframe)
+    #     pass
+
+    q_matrix = attr.pcmci.get_corrected_pvalues(p_matrix=results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
     return_time = time() - t
     attr.return_time = return_time
     attr.val_matrix = results["val_matrix"]
@@ -178,10 +282,10 @@ def thread_workers(attr):
     attr.recall = check_results[1]
     attr.f_score = check_results[2]
     attr.compare_matrix = compare_matrix
-    q = threading.Thread(target=time_series_plot, args=(attr, ))
-    q.start()
-    e = threading.Thread(target=process_graph_plot, args=(attr, ))
-    e.start()
+    # q = threading.Thread(target=time_series_plot, args=(attr, ))
+    # q.start()
+    # e = threading.Thread(target=process_graph_plot, args=(attr, ))
+    # e.start()
     t = threading.Thread(target=saving_matrices, args=(attr, ))
     t.start()
     s = threading.Thread(target=saving_attributes, args=(attr, ))
@@ -247,7 +351,8 @@ def saving_attributes(attr):
 
 def main():
     dataset_dict = import_data()
-    process_data(dataset_dict)
+    process_data_once(dataset_dict)
+    # process_data(dataset_dict)
     pass
 
 if __name__ == "__main__":

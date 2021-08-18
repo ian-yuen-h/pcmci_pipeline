@@ -1375,7 +1375,7 @@ def _draw_network_with_curved_edges(
             # except:
             #     print('no ticks given')
 
-            cb_e.outline.clear()
+            # cb_e.outline.clear()
             cax_e.set_xlabel(
                 link_colorbar_label, labelpad=1, fontsize=label_fontsize, zorder=-10
             )
