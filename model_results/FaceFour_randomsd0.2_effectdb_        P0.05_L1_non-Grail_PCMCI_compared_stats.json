@@ -1,0 +1,1 @@
+{"data_examined": "FaceFour", "effect_used": "randomsd0.2_effectdb", "alpha-level": 0.05, "lag value": 1, "representation used": "non-Grail", "precision": 0.5988372093023255, "recall": 0.9196428571428571, "f-score": 0.7253521126760563, "return_time": 650.3884568214417}

@@ -20,7 +20,7 @@ import threading
 import copy
 
 CWD = os.getcwd()
-DATASET_NAMES = ["FaceFour", "InlineSkate", "PickupGestureWiimoteZ", "SemgHandMovementCh2"]
+DATASET_NAMES = ["InlineSkate", "PickupGestureWiimoteZ", "SemgHandMovementCh2"] #"FaceFour", 
 
 TO_IMPORT =  ["mixsd0.1_0.1_causaldb", "mixsd0.1_0.05_causaldb", "mixsd0.2_0.1_causaldb", "mixsd0.2_0.05_causaldb", "randomsd0.1_effectdb", "randomsd0.2_effectdb", "rwalksd0.1_effectdb", "rwalksd0.05_effectdb"]
 
@@ -193,8 +193,8 @@ def process_data(dataset_dict):
             attr2.p_matrix = results['p_matrix']
             attr2.model = "PCMCI_plus"
             for alpha_level in PVALS:
-                link_matrix = pcmci1.return_significant_links(pq_matrix=attr2.q_matrix,
-                            val_matrix=attr1.val_matrix, alpha_level=alpha_level)['link_matrix']
+                link_matrix = pcmci2.return_significant_links(pq_matrix=attr2.q_matrix,
+                            val_matrix=attr2.val_matrix, alpha_level=alpha_level)['link_matrix']
                 for lagged in LAGS:
                     attry = copy.deepcopy(attr2)
                     attry.alpha_level = alpha_level
@@ -323,7 +323,7 @@ def process_graph_plot(attr):
 
 def saving_matrices(attr):
     with open(f'{CWD}/model_results/{attr.dataset_name}_{attr.import_type}_\
-        P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_val_matrices_PCMCI.npy', 'wb') as f:
+        P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_val_matrices.npy', 'wb') as f:
         np.save(f, attr.val_matrix)
 
     with open(f'{CWD}/model_results/{attr.dataset_name}_{attr.import_type}_\
