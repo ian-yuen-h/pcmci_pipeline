@@ -322,16 +322,13 @@ def process_graph_plot(attr):
     pass
 
 def saving_matrices(attr):
-    with open(f'{CWD}/model_results/{attr.dataset_name}_{attr.import_type}_\
-        P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_val_matrices.npy', 'wb') as f:
+    with open(f'{CWD}/model_results2/{attr.dataset_name}_{attr.import_type}_P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_val_matrices.npy', 'wb') as f:
         np.save(f, attr.val_matrix)
 
-    with open(f'{CWD}/model_results/{attr.dataset_name}_{attr.import_type}_\
-        P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_link_matrices.npy', 'wb') as f:
+    with open(f'{CWD}/model_results2/{attr.dataset_name}_{attr.import_type}_P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_link_matrices.npy', 'wb') as f:
         np.save(f, attr.compare_matrix)
 
-    with open(f'{CWD}/model_results/{attr.dataset_name}_{attr.import_type}_\
-        P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_pval_matrices.npy', 'wb') as f:
+    with open(f'{CWD}/model_results2/{attr.dataset_name}_{attr.import_type}_P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_pval_matrices.npy', 'wb') as f:
         np.save(f, attr.p_matrix)
 
 def saving_attributes(attr):
@@ -345,8 +342,7 @@ def saving_attributes(attr):
     results_dict["recall"]= attr.recall
     results_dict["f-score"]= attr.f_score
     results_dict["return_time"] = attr.return_time
-    with open(f'{CWD}/model_results/{attr.dataset_name}_{attr.import_type}_\
-        P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_compared_stats.json', 'w') as f:
+    with open(f'{CWD}/model_results2/{attr.dataset_name}_{attr.import_type}_P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_compared_stats.json', 'w') as f:
         json.dump(results_dict, f)
 
 def main():
