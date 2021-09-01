@@ -3805,6 +3805,7 @@ if __name__ == '__main__':
     print(data.shape)
     dataframe = pp.DataFrame(data)
     cond_ind_test = ParCorr()
+    # cond_ind_test = CMIknn()
     pcmci = PCMCI(dataframe=dataframe, cond_ind_test=cond_ind_test)
     results = pcmci.run_pcmciplus(tau_min=0, tau_max=2, pc_alpha=0.01)
     pcmci.print_results(results, alpha_level=0.01)

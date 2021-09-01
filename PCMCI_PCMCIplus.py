@@ -20,7 +20,7 @@ import threading
 import copy
 
 CWD = os.getcwd()
-DATASET_NAMES = ["InlineSkate", "PickupGestureWiimoteZ", "SemgHandMovementCh2"] #"FaceFour", 
+DATASET_NAMES = ["FaceFour", "InlineSkate", "PickupGestureWiimoteZ", "SemgHandMovementCh2"] 
 
 TO_IMPORT =  ["mixsd0.1_0.1_causaldb", "mixsd0.1_0.05_causaldb", "mixsd0.2_0.1_causaldb", "mixsd0.2_0.05_causaldb", "randomsd0.1_effectdb", "randomsd0.2_effectdb", "rwalksd0.1_effectdb", "rwalksd0.05_effectdb"]
 
@@ -86,11 +86,11 @@ def process_data_once(dataset_dict):
         verbosity=0)
     pcmci1.verbosity = 0
 
-    pcmci2 = PCMCI(
-        dataframe=df2, 
-        cond_ind_test=parcorr,
-        verbosity=0)
-    pcmci2.verbosity = 0
+    # pcmci2 = PCMCI(
+    #     dataframe=df2, 
+    #     cond_ind_test=parcorr,
+    #     verbosity=0)
+    # pcmci2.verbosity = 0
 
     attr_hold.dataset_name = "FaceFour"
     attr_hold.import_type = "randomsd0.1_effectdb"
@@ -152,10 +152,11 @@ def process_data(dataset_dict):
 
             df1 = pp.DataFrame(effect.transpose(), datatime = np.arange(len(effect[0])),var_names=var_names)
             df2 = copy.deepcopy(df1)
-            parcorr = ParCorr(significance='analytic')
+            # parcorr = ParCorr(significance='analytic')
+            cond_ind_test = CMIknn()
             pcmci1 = PCMCI(
                 dataframe=df1, 
-                cond_ind_test=parcorr,
+                cond_ind_test=cond_ind_test,
                 verbosity=0)
             pcmci1.verbosity = 0
             t = time()
@@ -178,30 +179,30 @@ def process_data(dataset_dict):
                     z = threading.Thread(target=thread_workers, args=(attrz, ))
                     z.start()
 
-            pcmci2 = PCMCI(
-                dataframe=df2, 
-                cond_ind_test=parcorr,
-                verbosity=0)
-            pcmci2.verbosity = 0
-            t = time()
-            results = pcmci2.run_pcmciplus(tau_min=0, tau_max=TAU_MAX, pc_alpha=None)
-            q_matrix = pcmci2.get_corrected_pvalues(p_matrix=results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
-            return_time = time() - t
-            attr2.return_time = return_time
-            attr2.val_matrix = results["val_matrix"]
-            attr2.q_matrix = q_matrix
-            attr2.p_matrix = results['p_matrix']
-            attr2.model = "PCMCI_plus"
-            for alpha_level in PVALS:
-                link_matrix = pcmci2.return_significant_links(pq_matrix=attr2.q_matrix,
-                            val_matrix=attr2.val_matrix, alpha_level=alpha_level)['link_matrix']
-                for lagged in LAGS:
-                    attry = copy.deepcopy(attr2)
-                    attry.alpha_level = alpha_level
-                    attry.lagged = lagged
-                    attry.link_matrix = link_matrix
-                    y = threading.Thread(target=thread_workers, args=(attry, ))
-                    y.start()
+            # pcmci2 = PCMCI(
+            #     dataframe=df2, 
+            #     cond_ind_test=parcorr,
+            #     verbosity=0)
+            # pcmci2.verbosity = 0
+            # t = time()
+            # results = pcmci2.run_pcmciplus(tau_min=0, tau_max=TAU_MAX, pc_alpha=None)
+            # q_matrix = pcmci2.get_corrected_pvalues(p_matrix=results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
+            # return_time = time() - t
+            # attr2.return_time = return_time
+            # attr2.val_matrix = results["val_matrix"]
+            # attr2.q_matrix = q_matrix
+            # attr2.p_matrix = results['p_matrix']
+            # attr2.model = "PCMCI_plus"
+            # for alpha_level in PVALS:
+            #     link_matrix = pcmci2.return_significant_links(pq_matrix=attr2.q_matrix,
+            #                 val_matrix=attr2.val_matrix, alpha_level=alpha_level)['link_matrix']
+            #     for lagged in LAGS:
+            #         attry = copy.deepcopy(attr2)
+            #         attry.alpha_level = alpha_level
+            #         attry.lagged = lagged
+            #         attry.link_matrix = link_matrix
+            #         y = threading.Thread(target=thread_workers, args=(attry, ))
+            #         y.start()
             
             # x = threading.Thread(target=run_PCMCI, args=(attr1, ))
             # x.start()
