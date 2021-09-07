@@ -24,11 +24,11 @@ DATASET_NAMES = ["FaceFour", "InlineSkate", "PickupGestureWiimoteZ", "SemgHandMo
 
 TO_IMPORT =  ["mixsd0.1_0.1_causaldb", "mixsd0.1_0.05_causaldb", "mixsd0.2_0.1_causaldb", "mixsd0.2_0.05_causaldb", "randomsd0.1_effectdb", "randomsd0.2_effectdb", "rwalksd0.1_effectdb", "rwalksd0.05_effectdb"]
 
-DATA_PATH = CWD +"/test_files/"
+DATA_PATH = CWD +"/test_files_new/"
 
 BEST_GAMMA = 5
 NEIGHBORS =[2, 5, 10, 100]
-PVALS = [0.01, 0.025, 0.05, 0.1]
+PVALS = [0.05, 0.1]
 LAGS = [1, 2]
 
 TAU_MAX = 3 
@@ -132,6 +132,8 @@ def process_data(dataset_dict):
             effectdb = dataset_dict[each][import_type]
             n1 = causal.shape[0]
             n2 = effectdb.shape[0]
+            n = n1 + n2
+            target_lag = [int(n*0.05), int(n*0.1)] 
             # TRAIN_TS, TEST_TS = representation.get_rep_train_test(effectdb, causal)
             # for reps in ["GRAIL", "non-GRAIL"]:     #with and without GRAIL
             #     if reps == "GRAIL":

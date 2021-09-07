@@ -1,0 +1,1 @@
+{"data_examined": "FaceFour", "effect_used": "mixsd0.1_0.1_causaldb", "alpha-level": 0.05, "lag value": 2, "representation used": "non-Grail", "precision": 0.12398373983739837, "recall": 0.5446428571428571, "f-score": 0.2019867549668874, "return_time": 673.8217904567719}
