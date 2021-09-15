@@ -1,0 +1,1 @@
+{"size": "sub50", "data_examined": "ItalyPowerDemand", "effect_used": "randomsd0.2_effectdb", "alpha-level": 0.05, "lag value": 2, "representation used": "non-Grail", "precision": 0, "recall": 0.0, "f-score": 0, "return_time": 155.17723679542542}

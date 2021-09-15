@@ -1,0 +1,1 @@
+{"size": "sub50", "data_examined": "Chinatown", "effect_used": "randomsd0.2_effectdb", "alpha-level": 0.05, "lag value": 2, "representation used": "non-Grail", "precision": 0.5, "recall": 0.2, "f-score": 0.28571428571428575, "return_time": 182.78853797912598}
