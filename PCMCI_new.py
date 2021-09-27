@@ -23,6 +23,7 @@ from os import walk
 CWD = os.getcwd()
 # DATASET_NAMES = ["Chinatown", "Coffee", "DiatomSizeReduction", "DodgerLoopDay", "DodgerLoopGame", "Earthquakes", "Fish", "FreezerSmallTrain", "Fungi", "GunPointMaleVersusFemale", "InsectEPGSmallTrain", "MoteStrain", "OSULeaf", "SemgHandMovementCh2", "ShakeGestureWiimoteZ", "ToeSegmentation2", "Trace", "UMD", "WormsTwoClass"] 
 
+TRUEMAT = np.asarray([[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]])
 TO_IMPORT =  ["mixsd0.1_0.1_effectdb", "mixsd0.1_0.05_effectdb", "mixsd0.2_0.1_effectdb", "mixsd0.2_0.05_effectdb", "randomsd0.1_effectdb", "randomsd0.2_effectdb", "rwalksd0.1_effectdb", "rwalksd0.05_effectdb"]
 
 DATA_PATH = CWD +"/test_files_new/"
@@ -76,14 +77,17 @@ def import_data():
     dataset_dict_over200 = {}
     counter = 0
     for each in dir_names:
-        try:
-            causal = np.load(str(DATA_PATH+each+"/"+each+"_causaldb.npy"))
-            data_points_number = causal.shape[1]
-    
-            # print(data_points_number)
-            if data_points_number < 50:
-                # print("sub50", each, data_points_number)
-                dataset_dict_sub50[each] = {}
+        causal = np.load(str(DATA_PATH+each+"/"+each+"_causaldb.npy"))
+        data_points_number = causal.shape[1]
+        # if each == "MelbournePedestrian":
+        #     print("datas", data_points_number)
+        # print(data_points_number)
+        if data_points_number < 50:
+            # print("sub50", each, data_points_number)
+            dataset_dict_sub50[each] = {}
+            # if each == "MelbournePedestrian":
+            #     print("here")
+            try:
                 holder = np.load(str(DATA_PATH+each+"/"+each+"_split_truemat.npy"))[0:5]
                 part1 = tuple(holder[0][0:5].tolist())
                 part2 = tuple(holder[1][0:5].tolist())
@@ -91,18 +95,24 @@ def import_data():
                 part4 = tuple(holder[3][0:5].tolist())
                 part5 = tuple(holder[4][0:5].tolist())
                 dataset_dict_sub50[each]["truemat"] = np.asarray([part1, part2, part3, part4, part5])
-                dataset_dict_sub50[each]["causaldb"] = causal[0:5]
-                for import_type in TO_IMPORT:
-                    if counter == 0:
-                        # print("causal", dataset_dict_sub50[each]["causaldb"].shape)
-                        # print("truemat", xx.shape)
-                        print("truemat trimmed", dataset_dict_sub50[each]["truemat"].shape)
-                        print(dataset_dict_sub50[each]["truemat"])
-                        print(len(part4))
-                        counter += 1
-                    dataset_dict_sub50[each][import_type] = np.load(str(DATA_PATH+each+"/"+each+"_"+import_type+".npy"))[0:5]
-            elif data_points_number >= 50 and data_points_number < 100:
-                dataset_dict_sub100[each] = {}
+            except:
+                dataset_dict_sub50[each]["truemat"] = TRUEMAT
+            
+            dataset_dict_sub50[each]["causaldb"] = causal[0:5]
+            # if each == "MelbournePedestrian":
+            #     print("causal", causal)
+            for import_type in TO_IMPORT:
+                # if counter == 0:
+                #     # print("causal", dataset_dict_sub50[each]["causaldb"].shape)
+                #     # print("truemat", xx.shape)
+                #     print("truemat trimmed", dataset_dict_sub50[each]["truemat"].shape)
+                #     print(dataset_dict_sub50[each]["truemat"])
+                #     print(len(part4))
+                #     counter += 1
+                dataset_dict_sub50[each][import_type] = np.load(str(DATA_PATH+each+"/"+each+"_"+import_type+".npy"))[0:5]
+        elif data_points_number >= 50 and data_points_number < 100:
+            dataset_dict_sub100[each] = {}
+            try:
                 holder = np.load(str(DATA_PATH+each+"/"+each+"_split_truemat.npy"))[0:5]
                 part1 = tuple(holder[0][0:5].tolist())
                 part2 = tuple(holder[1][0:5].tolist())
@@ -110,11 +120,14 @@ def import_data():
                 part4 = tuple(holder[3][0:5].tolist())
                 part5 = tuple(holder[4][0:5].tolist())
                 dataset_dict_sub50[each]["truemat"] = np.asarray([part1, part2, part3, part4, part5])
-                dataset_dict_sub100[each]["causaldb"] = causal[0:5]
-                for import_type in TO_IMPORT:
-                    dataset_dict_sub100[each][import_type] = np.load(str(DATA_PATH+each+"/"+each+"_"+import_type+".npy"))[0:5]
-            elif data_points_number >= 100 and data_points_number < 200:
-                dataset_dict_sub200[each] = {}
+            except:
+                dataset_dict_sub100[each]["truemat"] = TRUEMAT
+            dataset_dict_sub100[each]["causaldb"] = causal[0:5]
+            for import_type in TO_IMPORT:
+                dataset_dict_sub100[each][import_type] = np.load(str(DATA_PATH+each+"/"+each+"_"+import_type+".npy"))[0:5]
+        elif data_points_number >= 100 and data_points_number < 200:
+            dataset_dict_sub200[each] = {}
+            try:
                 holder = np.load(str(DATA_PATH+each+"/"+each+"_split_truemat.npy"))[0:5]
                 part1 = tuple(holder[0][0:5].tolist())
                 part2 = tuple(holder[1][0:5].tolist())
@@ -122,23 +135,26 @@ def import_data():
                 part4 = tuple(holder[3][0:5].tolist())
                 part5 = tuple(holder[4][0:5].tolist())
                 dataset_dict_sub50[each]["truemat"] = np.asarray([part1, part2, part3, part4, part5])
-                dataset_dict_sub200[each]["causaldb"] = causal[0:5]
-                for import_type in TO_IMPORT:
-                    dataset_dict_sub200[each][import_type] = np.load(str(DATA_PATH+each+"/"+each+"_"+import_type+".npy"))[0:5]
-            elif data_points_number >= 200:
-                dataset_dict_over200[each] = {}
+            except:
+                dataset_dict_sub200[each]["truemat"] = TRUEMAT
+            dataset_dict_sub200[each]["causaldb"] = causal[0:5]
+            for import_type in TO_IMPORT:
+                dataset_dict_sub200[each][import_type] = np.load(str(DATA_PATH+each+"/"+each+"_"+import_type+".npy"))[0:5]
+        elif data_points_number >= 200:
+            dataset_dict_over200[each] = {}
+            try:
                 holder = np.load(str(DATA_PATH+each+"/"+each+"_split_truemat.npy"))[0:5]
                 part1 = tuple(holder[0][0:5].tolist())
                 part2 = tuple(holder[1][0:5].tolist())
                 part3 = tuple(holder[2][0:5].tolist())
                 part4 = tuple(holder[3][0:5].tolist())
                 part5 = tuple(holder[4][0:5].tolist())
-                dataset_dict_sub50[each]["truemat"] = np.asarray([part1, part2, part3, part4, part5])
-                dataset_dict_over200[each]["causaldb"] = causal[0:5]
-                for import_type in TO_IMPORT:
-                    dataset_dict_over200[each][import_type] = np.load(str(DATA_PATH+each+"/"+each+"_"+import_type+".npy"))[0:5]
-        except:
-            continue
+                dataset_dict_over200[each]["truemat"] = np.asarray([part1, part2, part3, part4, part5])
+            except:
+                dataset_dict_over200[each]["truemat"] = TRUEMAT
+            dataset_dict_over200[each]["causaldb"] = causal[0:5]
+            for import_type in TO_IMPORT:
+                dataset_dict_over200[each][import_type] = np.load(str(DATA_PATH+each+"/"+each+"_"+import_type+".npy"))[0:5]
     datas = [dataset_dict_sub50, dataset_dict_sub100, dataset_dict_sub200, dataset_dict_over200]
     # print(datas)
     return datas
@@ -201,7 +217,7 @@ def process_data(dataset_dict):
     for group in dataset_dict:
         # print(group)
         for key, value in group.items():
-            if limit_number < 5:
+            if limit_number < 10:
                 limit_number += 1
             else:
                 break
@@ -209,7 +225,10 @@ def process_data(dataset_dict):
             name = key
             print(name)
             causal = group[name]["causaldb"]
-            trueMat = group[name]["truemat"]
+            try:
+                trueMat = group[name]["truemat"]
+            except:
+                trueMat = TRUEMAT
             attr_hold.trueMat = trueMat
 
             for import_type in TO_IMPORT:
@@ -224,7 +243,7 @@ def process_data(dataset_dict):
                 # print(n1)
                 # print(n2)
                 # target_lag = [int(n*0.05), int(n*0.1)]
-                target_lag = [1, 2, 3]
+                target_lag = [2]
                 effect = effectdb
                 reps = "non-Grail"
                 var_names = np.arange(len(effect))
@@ -246,7 +265,7 @@ def process_data(dataset_dict):
                     verbosity=0)
                 pcmci1.verbosity = 0
                 t = time()
-                results = pcmci1.run_pcmci(tau_max=TAU_MAX, pc_alpha=0.05)
+                results = pcmci1.run_pcmci(tau_max=TAU_MAX, pc_alpha=0.01)
                 q_matrix = pcmci1.get_corrected_pvalues(p_matrix=results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
                 return_time = time() - t
                 attr1.return_time = return_time
@@ -265,31 +284,31 @@ def process_data(dataset_dict):
                         z = threading.Thread(target=thread_workers, args=(attrz, ))
                         z.start()
 
-                cond_ind_test2 = CMIknn()
-                pcmci2 = PCMCI(
-                    dataframe=df2, 
-                    cond_ind_test=cond_ind_test2,
-                    verbosity=0)
-                pcmci2.verbosity = 0
-                t = time()
-                results = pcmci2.run_pcmciplus(tau_min=0, tau_max=TAU_MAX, pc_alpha=0.05)
-                q_matrix = pcmci2.get_corrected_pvalues(p_matrix=results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
-                return_time = time() - t
-                attr2.return_time = return_time
-                attr2.val_matrix = results["val_matrix"]
-                attr2.q_matrix = q_matrix
-                attr2.p_matrix = results['p_matrix']
-                attr2.model = "PCMCI_plus"
-                for alpha_level in PVALS:
-                    link_matrix = pcmci2.return_significant_links(pq_matrix=attr2.q_matrix,
-                                val_matrix=attr2.val_matrix, alpha_level=alpha_level)['link_matrix']
-                    for lagged in target_lag:
-                        attry = copy.deepcopy(attr2)
-                        attry.alpha_level = alpha_level
-                        attry.lagged = lagged
-                        attry.link_matrix = link_matrix
-                        y = threading.Thread(target=thread_workers, args=(attry, ))
-                        y.start()
+                # cond_ind_test2 = CMIknn()
+                # pcmci2 = PCMCI(
+                #     dataframe=df2, 
+                #     cond_ind_test=cond_ind_test2,
+                #     verbosity=0)
+                # pcmci2.verbosity = 0
+                # t = time()
+                # results = pcmci2.run_pcmciplus(tau_min=0, tau_max=TAU_MAX, pc_alpha=0.05)
+                # q_matrix = pcmci2.get_corrected_pvalues(p_matrix=results['p_matrix'], tau_max=8, fdr_method='fdr_bh')
+                # return_time = time() - t
+                # attr2.return_time = return_time
+                # attr2.val_matrix = results["val_matrix"]
+                # attr2.q_matrix = q_matrix
+                # attr2.p_matrix = results['p_matrix']
+                # attr2.model = "PCMCI_plus"
+                # for alpha_level in PVALS:
+                #     link_matrix = pcmci2.return_significant_links(pq_matrix=attr2.q_matrix,
+                #                 val_matrix=attr2.val_matrix, alpha_level=alpha_level)['link_matrix']
+                #     for lagged in target_lag:
+                #         attry = copy.deepcopy(attr2)
+                #         attry.alpha_level = alpha_level
+                #         attry.lagged = lagged
+                #         attry.link_matrix = link_matrix
+                #         y = threading.Thread(target=thread_workers, args=(attry, ))
+                #         y.start()
         limit_number =0
     group_counter +=1
 def thread_workers(attr):
@@ -376,6 +395,12 @@ def saving_attributes(attr):
     results_dict["return_time"] = attr.return_time
     with open(f'{CWD}/model_results2/{attr.size}_{attr.dataset_name}_{attr.import_type}_P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_compared_stats.json', 'w') as f:
         json.dump(results_dict, f)
+    
+    # data = [[[attr.dataset_name], [attr.size, attr.dataset_name, attr.import_type, attr.alpha_level, attr.lagged, attr.representation, attr.precision, attr.recall, attr.f_score, attr.return_time]]]
+    data = [attr.size, attr.dataset_name, attr.import_type, attr.alpha_level, attr.lagged, attr.representation, attr.precision, attr.recall, attr.f_score, attr.return_time]
+    df = pd.DataFrame(columns = ["size", "name", "method", "alpha", "lag", "representation", "precision", "recall", "f-score", "runtime"])
+    df.loc[0] = data
+    df.to_pickle(f'{CWD}/model_results2/{attr.size}_{attr.dataset_name}_{attr.import_type}_P{attr.alpha_level}_L{attr.lagged}_{attr.representation}_{attr.model}_compared_stats.pickle')
 
 def main():
     global dir_names
